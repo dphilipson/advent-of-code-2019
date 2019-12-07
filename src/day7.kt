@@ -1,3 +1,7 @@
+import util.readInts
+import intcode.runFromSnapshot
+import intcode.runIntcode
+
 fun main() {
     val program = readInts("src/day7.txt", ",")[0]
     println(solvePart1(program))

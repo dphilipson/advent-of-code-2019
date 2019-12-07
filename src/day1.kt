@@ -1,3 +1,5 @@
+import util.readIntPerLine
+
 fun main() {
     val masses = readIntPerLine("src/day1.txt")
     println(solvePart1(masses))

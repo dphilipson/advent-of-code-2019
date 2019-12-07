@@ -1,3 +1,5 @@
+import util.readInts
+
 fun main() {
     val registers = readInts("src/day2.txt", ",")[0]
     println(solvePart1(registers))

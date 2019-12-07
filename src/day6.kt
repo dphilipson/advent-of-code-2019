@@ -1,3 +1,5 @@
+import util.readStrings
+
 fun main() {
     val orbits = readStrings("src/day6.txt", ")").map { Pair(it[1], it[0]) }
     println(solvePart1(orbits))

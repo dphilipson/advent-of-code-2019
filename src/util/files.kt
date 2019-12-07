@@ -1,3 +1,5 @@
+package util
+
 import java.io.File
 
 private val WHITESPACE = Regex("\\s+")

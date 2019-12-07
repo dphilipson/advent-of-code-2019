@@ -1,3 +1,5 @@
+package intcode
+
 data class IntcodeSnapshot(val registers: List<Int>, val instructionIndex: Int?)
 data class IntcodeResult(val snapshot: IntcodeSnapshot, val outputs: List<Int>)
 
