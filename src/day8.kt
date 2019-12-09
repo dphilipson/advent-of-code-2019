@@ -21,7 +21,7 @@ private fun solvePart2(input: String) {
     val layers = input.chunked(AREA)
     val resolvedPixels = (0 until AREA)
         .map { i -> resolveLayers( layers.indices.map { layers[it][i] }) }
-        .map { if (it == '0') ' ' else '#' }
+        .map { if (it == '0') ' ' else '█' }
     resolvedPixels
         .chunked(WIDTH)
         .map { it.joinToString("") }
