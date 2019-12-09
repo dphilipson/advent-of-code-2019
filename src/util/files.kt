@@ -45,3 +45,13 @@ fun readInts(filename: String, separator: String = ","): List<List<Int>> = File(
             .map { token -> token.toInt() }
     }
     .toList()
+
+fun readLongs(filename: String, separator: String = ","): List<List<Long>> = File(filename)
+    .bufferedReader()
+    .lineSequence()
+    .map {
+        it
+            .split(separator)
+            .map { token -> token.toLong() }
+    }
+    .toList()

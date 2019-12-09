@@ -1,29 +1,43 @@
 package intcode
 
-data class IntcodeSnapshot(val registers: List<Int>, val instructionIndex: Int?)
-data class IntcodeResult(val snapshot: IntcodeSnapshot, val outputs: List<Int>)
+data class IntcodeSnapshot(val registers: List<Long>, val instructionIndex: Int?, val relativeBase: Int)
+data class IntcodeResult(val snapshot: IntcodeSnapshot, val outputs: List<Long>)
 
-fun runIntcode(initialRegisters: List<Int>, inputs: List<Int>): IntcodeResult =
-    runFromSnapshot(IntcodeSnapshot(initialRegisters, 0), inputs)
+fun runIntcode(initialRegisters: List<Long>, inputs: List<Long>): IntcodeResult =
+    runFromSnapshot(IntcodeSnapshot(initialRegisters, 0, 0), inputs)
 
-fun runFromSnapshot(snapshot: IntcodeSnapshot, inputs: List<Int>): IntcodeResult {
+fun runFromSnapshot(snapshot: IntcodeSnapshot, inputs: List<Long>): IntcodeResult {
     val registers = snapshot.registers.toMutableList()
     var i = snapshot.instructionIndex ?: throw Exception("Cannot run from completed snapshot.")
+    var relativeBase = snapshot.relativeBase
     var inputIndex = 0
-    val outputs = mutableListOf<Int>()
+    val outputs = mutableListOf<Long>()
+
+    fun getRegister(index: Int): Long = registers.getOrElse(index) { 0 }
+
     while (true) {
         val instruction = registers[i]
-        val opcode = instruction % 100
-        val modes = getParameterModes(instruction, 2)
+        val opcode = (instruction % 100).toInt()
+        val modes = getParameterModes(instruction)
 
-        fun eval(paramIndex: Int): Int = when (val mode = modes[paramIndex]) {
-            0 -> registers[registers[i + paramIndex + 1]]
-            1 -> registers[i + paramIndex + 1]
-            else -> throw Exception("Invalid parameter mode $mode.")
+        fun getIndexForParam(paramIndex: Int): Int {
+            val rawIndex = i + paramIndex + 1
+            return when (val mode = modes.getOrElse(paramIndex) { 0 }) {
+                0 -> getRegister(rawIndex).toInt()
+                1 -> rawIndex
+                2 -> getRegister(rawIndex).toInt() + relativeBase
+                else -> throw Exception("Invalid parameter mode $mode.")
+            }
         }
 
-        fun write(paramIndex: Int, value: Int) {
-            registers[registers[i + paramIndex + 1]] = value
+        fun eval(paramIndex: Int): Long = getRegister(getIndexForParam(paramIndex))
+
+        fun write(paramIndex: Int, value: Long) {
+            val writeIndex = getIndexForParam(paramIndex)
+            while (registers.size <= writeIndex) {
+                registers.add(0L)
+            }
+            registers[writeIndex] = value
         }
 
         when (opcode) {
@@ -41,15 +55,15 @@ fun runFromSnapshot(snapshot: IntcodeSnapshot, inputs: List<Int>): IntcodeResult
                     inputIndex++
                     i += 2
                 } else {
-                    return IntcodeResult(IntcodeSnapshot(registers, i), outputs)
+                    return IntcodeResult(IntcodeSnapshot(registers, i, relativeBase), outputs)
                 }
             }
             4 -> {
                 outputs.add(eval(0))
                 i += 2
             }
-            5 -> i = if (eval(0) != 0) eval(1) else i + 3
-            6 -> i = if (eval(0) == 0) eval(1) else i + 3
+            5 -> i = if (eval(0) != 0L) eval(1).toInt() else i + 3
+            6 -> i = if (eval(0) == 0L) eval(1).toInt() else i + 3
             7 -> {
                 write(2, if (eval(0) < eval(1)) 1 else 0)
                 i += 4
@@ -58,16 +72,19 @@ fun runFromSnapshot(snapshot: IntcodeSnapshot, inputs: List<Int>): IntcodeResult
                 write(2, if (eval(0) == eval(1)) 1 else 0)
                 i += 4
             }
-            99 -> return IntcodeResult(IntcodeSnapshot(registers, null), outputs)
+            9 -> {
+                relativeBase += eval(0).toInt()
+                i += 2
+            }
+            99 -> return IntcodeResult(IntcodeSnapshot(registers, null, relativeBase), outputs)
             else -> throw Exception("Invalid op code $opcode.")
         }
     }
 }
 
-private fun getParameterModes(instruction: Int, length: Int): List<Int> =
+private fun getParameterModes(instruction: Long): List<Int> =
     instruction
         .toString()
         .dropLast(2)
-        .padStart(length, '0')
         .reversed()
         .map { it - '0' }
