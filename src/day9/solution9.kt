@@ -1,8 +1,10 @@
+package day9
+
 import intcode.runIntcode
 import util.readLongs
 
 fun main() {
-    val program = readLongs("src/day9.txt", ",")[0]
+    val program = readLongs("src/day9/input9.txt", ",")[0]
     println(solvePart1(program))
     println(solvePart2(program))
 }

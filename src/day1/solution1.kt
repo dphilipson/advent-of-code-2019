@@ -1,7 +1,9 @@
+package day1
+
 import util.readIntPerLine
 
 fun main() {
-    val masses = readIntPerLine("src/day1.txt")
+    val masses = readIntPerLine("src/day1/input1.txt")
     println(solvePart1(masses))
     println(solvePart2(masses))
 }

@@ -1,3 +1,5 @@
+package day3
+
 import util.readStrings
 import kotlin.math.absoluteValue
 import kotlin.math.sign
@@ -6,7 +8,7 @@ private data class Step(val isX: Boolean, val delta: Int)
 private data class Location(val x: Int, val y: Int)
 
 fun main() {
-    val (steps1, steps2) = readStrings("src/day3.txt", ",")
+    val (steps1, steps2) = readStrings("src/day3/input3.txt", ",")
         .map { rawSteps -> rawSteps.map { parseStep(it) } }
     println(solvePart1(steps1, steps2))
     println(solvePart2(steps1, steps2))

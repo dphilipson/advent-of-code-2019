@@ -1,3 +1,5 @@
+package day4
+
 import kotlin.math.min
 
 fun main() {

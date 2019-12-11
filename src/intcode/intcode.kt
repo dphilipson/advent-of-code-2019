@@ -1,15 +1,15 @@
 package intcode
 
-data class IntcodeSnapshot(val registers: List<Long>, val instructionIndex: Int?, val relativeBase: Int)
-data class IntcodeResult(val snapshot: IntcodeSnapshot, val outputs: List<Long>)
+data class IntcodeState(val registers: List<Long>, val instructionIndex: Int?, val relativeBase: Int)
+data class IntcodeResult(val state: IntcodeState, val outputs: List<Long>)
 
 fun runIntcode(initialRegisters: List<Long>, inputs: List<Long>): IntcodeResult =
-    runFromSnapshot(IntcodeSnapshot(initialRegisters, 0, 0), inputs)
+    runIntcodeFromState(IntcodeState(initialRegisters, 0, 0), inputs)
 
-fun runFromSnapshot(snapshot: IntcodeSnapshot, inputs: List<Long>): IntcodeResult {
-    val registers = snapshot.registers.toMutableList()
-    var i = snapshot.instructionIndex ?: throw Exception("Cannot run from completed snapshot.")
-    var relativeBase = snapshot.relativeBase
+fun runIntcodeFromState(state: IntcodeState, inputs: List<Long>): IntcodeResult {
+    val registers = state.registers.toMutableList()
+    var i = state.instructionIndex ?: throw Exception("Cannot run from completed state.")
+    var relativeBase = state.relativeBase
     var inputIndex = 0
     val outputs = mutableListOf<Long>()
 
@@ -55,7 +55,7 @@ fun runFromSnapshot(snapshot: IntcodeSnapshot, inputs: List<Long>): IntcodeResul
                     inputIndex++
                     i += 2
                 } else {
-                    return IntcodeResult(IntcodeSnapshot(registers, i, relativeBase), outputs)
+                    return IntcodeResult(IntcodeState(registers, i, relativeBase), outputs)
                 }
             }
             4 -> {
@@ -76,7 +76,7 @@ fun runFromSnapshot(snapshot: IntcodeSnapshot, inputs: List<Long>): IntcodeResul
                 relativeBase += eval(0).toInt()
                 i += 2
             }
-            99 -> return IntcodeResult(IntcodeSnapshot(registers, null, relativeBase), outputs)
+            99 -> return IntcodeResult(IntcodeState(registers, null, relativeBase), outputs)
             else -> throw Exception("Invalid op code $opcode.")
         }
     }

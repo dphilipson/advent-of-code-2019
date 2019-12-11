@@ -1,3 +1,5 @@
+package day8
+
 import util.readSingleString
 
 private const val WIDTH = 25
@@ -5,7 +7,7 @@ private const val HEIGHT = 6
 private const val AREA = WIDTH * HEIGHT
 
 fun main() {
-    val input = readSingleString("src/day8.txt")
+    val input = readSingleString("src/day8/input8.txt")
     println(solvePart1(input))
     solvePart2(input)
 }
@@ -20,7 +22,7 @@ private fun solvePart1(input: String): Int =
 private fun solvePart2(input: String) {
     val layers = input.chunked(AREA)
     val resolvedPixels = (0 until AREA)
-        .map { i -> resolveLayers( layers.indices.map { layers[it][i] }) }
+        .map { i -> resolveLayers(layers.indices.map { layers[it][i] }) }
         .map { if (it == '0') ' ' else '█' }
     resolvedPixels
         .chunked(WIDTH)

@@ -1,9 +1,11 @@
-import intcode.runFromSnapshot
+package day7
+
+import intcode.runIntcodeFromState
 import intcode.runIntcode
 import util.readLongs
 
 fun main() {
-    val program = readLongs("src/day7.txt", ",")[0]
+    val program = readLongs("src/day7/input7.txt", ",")[0]
     println(solvePart1(program))
     println(solvePart2(program))
 }
@@ -26,12 +28,12 @@ private fun applyAmplifer(program: List<Long>, phaseSetting: Long, input: Long):
 
 private fun applyAmplifiersInLoop(program: List<Long>, phaseSettings: List<Long>): Long {
     val amplifiers = phaseSettings.asSequence()
-        .map { runIntcode(program, listOf(it)).snapshot }
+        .map { runIntcode(program, listOf(it)).state }
         .toMutableList()
     var i = 0
     var signal = 0L
     while (amplifiers.last().instructionIndex != null) {
-        val (snapshot, outputs) = runFromSnapshot(amplifiers[i], listOf(signal))
+        val (snapshot, outputs) = runIntcodeFromState(amplifiers[i], listOf(signal))
         amplifiers[i] = snapshot
         signal = outputs[0]
         i = (i + 1) % amplifiers.size

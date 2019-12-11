@@ -1,7 +1,9 @@
+package day2
+
 import util.readInts
 
 fun main() {
-    val registers = readInts("src/day2.txt", ",")[0]
+    val registers = readInts("src/day2/input2.txt", ",")[0]
     println(solvePart1(registers))
     println(solvePart2(registers))
 }
