@@ -9,8 +9,6 @@ private const val BLOCK = 2L
 private const val PADDLE = 3L
 private const val BALL = 4L
 
-private data class Coord(val x: Int, val y: Int)
-
 fun main() {
     val program = readLongs("src/day13/input13.txt", ",")[0]
     println(solvePart1(program))
@@ -33,10 +31,10 @@ private fun solvePart2(program: List<Long>): Long {
     var state = initialResult.state
     while (state.instructionIndex != null) {
         val input = (ballX - paddleX).sign.toLong()
-        paddleX += input
         val result = runIntcodeFromState(state, listOf(input))
         state = result.state
         getBallX(result.outputs)?.let { ballX = it }
+        getPaddleX(result.outputs)?.let { paddleX = it }
         getScoreUpdate(result.outputs)?.let { score = it }
     }
     return score
@@ -56,34 +54,3 @@ private fun getScoreUpdate(outputs: List<Long>): Long? =
         .chunked(3)
         .find { it[0] == -1L && it[1] == 0L }
         ?.let { it[2] }
-
-
-private fun renderBoard(outputs: List<Long>) {
-    val tilesByLocation = outputs.asSequence()
-        .chunked(3) { Pair(Coord(it[0].toInt(), it[1].toInt()), it[2]) }
-        .filter { it.first != Coord(-1, 0) }
-        .toMap()
-    val maxX = tilesByLocation.keys.asSequence().map { it.x }.max()!!
-    val maxY = tilesByLocation.keys.asSequence().map { it.y }.max()!!
-    for (y in 0..maxY) {
-        println((0..maxX).asSequence()
-            .map { x -> renderTile(tilesByLocation.getOrDefault(Coord(x, y), EMPTY)) }
-            .joinToString("")
-        )
-    }
-}
-
-private fun renderTile(tile: Long): Char = when (tile) {
-    EMPTY -> ' '
-    WALL -> '█'
-    BLOCK -> '☐'
-    PADDLE -> '-'
-    BALL -> '•'
-    else -> throw Exception("Invalid tile $tile")
-}
-
-private fun getInput(): Long = when (readLine()) {
-    "a" -> -1
-    "d" -> 1
-    else  -> 0
-}
