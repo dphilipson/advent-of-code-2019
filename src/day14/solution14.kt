@@ -64,12 +64,12 @@ private fun parseRecipes(lines: List<String>): Map<String, Recipe> =
 
 
 private fun parseRecipe(line: String): Pair<String, Recipe> {
-    val match = """(.+) => (.+)""".toRegex().matchEntire(line)!!
-    val parts = match.groups[1]!!.value
+    val (partsString, amountString) = line.split(" => ")
+    val parts = partsString
         .splitToSequence(", ")
         .map { parseAmount(it) }
         .toList()
-    val result = parseAmount(match.groups[2]!!.value)
+    val result = parseAmount(amountString)
     return Pair(result.unit, Recipe(result.count, parts))
 }
 
