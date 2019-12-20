@@ -1,7 +1,8 @@
 package day18
 
 import util.readStringPerLine
-import java.util.*
+import util.search
+import util.uniformSearch
 
 private data class Location(val x: Int, val y: Int) {
     fun neighbors(): List<Location> =
@@ -31,58 +32,51 @@ private fun solvePart1(input: List<String>): Int = solveDungeons(listOf(readDung
 private fun solvePart2(input: List<String>): Int = solveDungeons(readMultiDungeon(input))
 
 private fun solveDungeons(dungeons: List<Dungeon>): Int {
-    val seenStates = mutableSetOf<SearchState>()
-    val pendingStates = PriorityQueue<Pair<SearchState, Int>> { p1, p2 -> compareValues(p1.second, p2.second) }
-    pendingStates.add(Pair(SearchState(dungeons.map { it.startSpace }, setOf()), 0))
     val totalKeyCount = dungeons.asSequence()
         .flatMap { dungeon -> dungeon.keysBySpace.keys.asSequence() }
         .distinct()
         .count()
-    while (pendingStates.isNotEmpty()) {
-        val (state, stepCount) = pendingStates.remove()
-        if (state in seenStates) {
-            continue
-        }
-        seenStates.add(state)
-        if (state.keys.size == totalKeyCount) {
-            return stepCount
-        }
-        for (i in dungeons.indices) {
-            val dungeon = dungeons[i]
-            for ((potentialLocation, count) in getPotentialMoves(dungeon, state.spaces[i], state.keys)) {
-                val newKey = dungeon.keysBySpace.getValue(potentialLocation)
-                val newKeys = state.keys.toMutableSet().apply { add(newKey) }
-                val newSpaces = state.spaces.toMutableList().apply { this[i] = potentialLocation }
-                pendingStates.add(Pair(SearchState(newSpaces, newKeys), stepCount + count))
-            }
-        }
-    }
-    throw Exception("Explored everywhere and didn't get all keys.")
+    return search(
+        initialState = SearchState(dungeons.map { it.startSpace }, setOf()),
+        getNextStates = { state ->
+            (dungeons.indices).asSequence()
+                .flatMap { i ->
+                    val dungeon = dungeons[i]
+                    getPotentialMoves(dungeon, state.spaces[i], state.keys).asSequence()
+                        .map { (potentialLocation, stepCount) ->
+                            val newKey = dungeon.keysBySpace.getValue(potentialLocation)
+                            val newKeys = state.keys.toMutableSet().apply { add(newKey) }
+                            val newSpaces = state.spaces.toMutableList().apply { this[i] = potentialLocation }
+                            Pair(SearchState(newSpaces, newKeys), stepCount)
+                        }
+                }.toList()
+        },
+        isTerminalState = { state -> state.keys.size == totalKeyCount }
+    ).finalState?.second ?: throw Exception("Explored everywhere and didn't get all keys.")
 }
 
-private fun getPotentialMoves(dungeon: Dungeon, initialLocation: Location, keys: Set<Char>): List<Pair<Location, Int>> {
-    val seenLocations = mutableSetOf<Location>()
-    val pendingLocations = ArrayDeque<Pair<Location, Int>>()
-    pendingLocations.add(Pair(initialLocation, 0))
-    val result = mutableListOf<Pair<Location, Int>>()
-    while (pendingLocations.isNotEmpty()) {
-        val (location, stepCount) = pendingLocations.remove()
-        if (location in seenLocations) {
-            continue
-        }
-        seenLocations.add(location)
+private fun getPotentialMoves(
+    dungeon: Dungeon,
+    initialLocation: Location,
+    keys: Set<Char>
+): List<Pair<Location, Int>> {
+    fun isAtNewKey(location: Location): Boolean {
         val keyAtLocation = dungeon.keysBySpace[location]
-        if (keyAtLocation != null && keyAtLocation !in keys) {
-            result.add(Pair(location, stepCount))
-            continue
-        }
-        for (neighbor in location.neighbors()) {
-            if (dungeon.isOpen(neighbor, keys)) {
-                pendingLocations.add(Pair(neighbor, stepCount + 1))
-            }
-        }
+        return keyAtLocation != null && keyAtLocation !in keys
     }
-    return result
+    return uniformSearch(
+        initialState = initialLocation,
+        getNextStates = { location ->
+            if (isAtNewKey(location))
+                listOf()
+            else
+                location.neighbors().filter { dungeon.isOpen(it, keys) }
+        },
+        isTerminalState = { false }
+    ).seenStates.asSequence()
+        .filter { (location, _) -> isAtNewKey(location) }
+        .map { (location, distance) -> Pair(location, distance) }
+        .toList()
 }
 
 private fun readDungeon(lines: List<String>): Dungeon = readSubDungeon(lines, lines[0].indices, lines.indices)
@@ -131,8 +125,9 @@ private fun readMultiDungeon(lines: List<String>): List<Dungeon> {
 
 private fun findStartLocation(lines: List<String>): Location =
     (lines.indices).asSequence()
-        .flatMap { y -> lines[y].indices.asSequence()
-            .filter { x -> lines[x][y] == '@'}
-            .map { x -> Location(x, y) }
+        .flatMap { y ->
+            lines[y].indices.asSequence()
+                .filter { x -> lines[x][y] == '@' }
+                .map { x -> Location(x, y) }
         }
         .first()
