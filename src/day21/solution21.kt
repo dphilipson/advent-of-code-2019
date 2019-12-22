@@ -5,6 +5,7 @@ import util.readLongs
 
 fun main() {
     val input = readLongs("src/day21/input21.txt")[0]
+    println(solvePart1(input))
     println(solvePart2(input))
 }
 
@@ -21,10 +22,7 @@ private fun solvePart1(input: List<Long>): Long {
             WALK
             
         """.trimIndent()
-    val program = programText.asSequence()
-        .map { it.toLong() }
-        .toList()
-    return runIntcode(input, program).outputs.last()
+    return runSpringdroid(input, programText)
 }
 
 private fun solvePart2(input: List<Long>): Long {
@@ -44,10 +42,13 @@ private fun solvePart2(input: List<Long>): Long {
             RUN
             
         """.trimIndent()
+    return runSpringdroid(input, programText)
+}
+
+private fun runSpringdroid(input: List<Long>, programText: String): Long {
     val program = programText.asSequence()
         .map { it.toLong() }
         .toList()
-    printOutput(runIntcode(input, program).outputs)
     return runIntcode(input, program).outputs.last()
 }
 
