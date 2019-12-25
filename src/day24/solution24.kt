@@ -38,15 +38,12 @@ fun main() {
 }
 
 private fun solvePart1(initialState: Set<Location>): Int {
-    val seenStates = mutableSetOf<Set<Location>>()
-    var state = initialState
-    while (true) {
-        if (state in seenStates) {
-            return getBiodiversityRating(state)
-        }
-        seenStates.add(state)
-        state = runStep(state, 5)
-    }
+    tailrec fun recur(state: Set<Location>, seenStates: MutableSet<Set<Location>>): Int =
+        if (state in seenStates)
+            getBiodiversityRating(state)
+        else
+            recur(runStep(state, 5), seenStates.apply { add(state) })
+    return recur(initialState, mutableSetOf())
 }
 
 private fun solvePart2(initialState: Set<DeepLocation>): Int =
